@@ -108,7 +108,13 @@ function PresentInner() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); advance(); }
+      if (e.key === " " || e.key === "ArrowRight" || e.key === "Enter") {
+        e.preventDefault();
+        // A clicked footer button keeps focus, and Space would natively
+        // re-click it on key-up — fighting the advance. Drop focus first.
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        advance();
+      }
       if (e.key === "ArrowLeft") goBackStage();
     }
     window.addEventListener("keydown", onKey);
@@ -223,18 +229,22 @@ function PresentInner() {
       </div>
 
       <footer className="flex items-center justify-between px-6 pb-5 text-xs text-purple-200/50" onClick={(e) => e.stopPropagation()}>
-        <button type="button" onClick={goBackStage} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Back</button>
+        {stage === "award" && awardIdx === 0 && !done ? (
+          <a href="/admin" className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Dashboard</a>
+        ) : (
+          <button type="button" onClick={(e) => { goBackStage(); e.currentTarget.blur(); }} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Back</button>
+        )}
         <div className="flex items-center gap-4">
-          <button type="button" onClick={() => setSoundOn((s) => !s)} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10" aria-pressed={soundOn}>
+          <button type="button" onClick={(e) => { setSoundOn((s) => !s); e.currentTarget.blur(); }} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10" aria-pressed={soundOn}>
             {soundOn ? "🔊 Sound On" : "🔇 Sound Off"}
           </button>
           <label className="flex cursor-pointer items-center gap-2 font-semibold">
-            <input type="checkbox" checked={showCounts} onChange={(e) => setShowCounts(e.target.checked)} className="h-4 w-4 accent-amber-400" />
+            <input type="checkbox" checked={showCounts} onChange={(e) => setShowCounts(e.target.checked)} onClick={(e) => e.currentTarget.blur()} className="h-4 w-4 accent-amber-400" />
             Show vote totals
           </label>
         </div>
         <span className="hidden sm:block">Click anywhere or press Space to advance</span>
-        <button type="button" onClick={advance} className="font-display rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-black text-black">Next →</button>
+        <button type="button" onClick={(e) => { advance(); e.currentTarget.blur(); }} className="font-display rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-black text-black">Next →</button>
       </footer>
     </main>
   );
