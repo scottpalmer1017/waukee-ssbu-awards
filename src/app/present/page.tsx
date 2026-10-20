@@ -6,6 +6,7 @@ import { CATEGORIES, GROUPS, type ProjectGroup } from "@/lib/data";
 import PlaceholderScreenshot from "@/components/PlaceholderScreenshot";
 import Confetti from "@/components/Confetti";
 import { computeCeremonyResults } from "@/lib/results";
+import { playSuspenseRoll, playWinnerCelebration } from "@/lib/sounds";
 
 type Results = {
   votingOpen: boolean;
@@ -53,6 +54,7 @@ function PresentInner() {
   const [awardIdx, setAwardIdx] = useState(0);
   const [stage, setStage] = useState<Stage>("award");
   const [showCounts, setShowCounts] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -85,11 +87,16 @@ function PresentInner() {
   const advance = useCallback(() => {
     if (done) return;
     if (stage === "award") setStage("nominees");
-    else if (stage === "nominees") setStage("suspense");
-    else if (stage === "suspense") setStage("winner");
+    else if (stage === "nominees") {
+      setStage("suspense");
+      if (soundOn) playSuspenseRoll();
+    } else if (stage === "suspense") {
+      setStage("winner");
+      if (soundOn) playWinnerCelebration();
+    }
     else if (awardIdx < CATEGORIES.length - 1) { setAwardIdx(awardIdx + 1); setStage("award"); }
     else setDone(true);
-  }, [stage, awardIdx, done]);
+  }, [stage, awardIdx, done, soundOn]);
 
   const goBackStage = useCallback(() => {
     if (done) { setDone(false); setStage("winner"); return; }
@@ -217,10 +224,15 @@ function PresentInner() {
 
       <footer className="flex items-center justify-between px-6 pb-5 text-xs text-purple-200/50" onClick={(e) => e.stopPropagation()}>
         <button type="button" onClick={goBackStage} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Back</button>
-        <label className="flex cursor-pointer items-center gap-2 font-semibold">
-          <input type="checkbox" checked={showCounts} onChange={(e) => setShowCounts(e.target.checked)} className="h-4 w-4 accent-amber-400" />
-          Show vote totals
-        </label>
+        <div className="flex items-center gap-4">
+          <button type="button" onClick={() => setSoundOn((s) => !s)} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10" aria-pressed={soundOn}>
+            {soundOn ? "🔊 Sound On" : "🔇 Sound Off"}
+          </button>
+          <label className="flex cursor-pointer items-center gap-2 font-semibold">
+            <input type="checkbox" checked={showCounts} onChange={(e) => setShowCounts(e.target.checked)} className="h-4 w-4 accent-amber-400" />
+            Show vote totals
+          </label>
+        </div>
         <span className="hidden sm:block">Click anywhere or press Space to advance</span>
         <button type="button" onClick={advance} className="font-display rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-black text-black">Next →</button>
       </footer>
