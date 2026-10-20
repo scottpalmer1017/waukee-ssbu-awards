@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b1470"/>
+      <stop offset="1" stop-color="#120826"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fde68a"/>
+      <stop offset="0.55" stop-color="#f5c542"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)" stroke="#f5c542" stroke-width="2.5"/>
+  <!-- trophy handles -->
+  <path d="M19 15h-5.5v3.5A7.5 7.5 0 0 0 21 26" fill="none" stroke="url(#gold)" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M45 15h5.5v3.5A7.5 7.5 0 0 1 43 26" fill="none" stroke="url(#gold)" stroke-width="3.6" stroke-linecap="round"/>
+  <!-- trophy cup -->
+  <path d="M19 10h26v9a13 13 0 0 1-26 0z" fill="url(#gold)"/>
+  <!-- star cutout -->
+  <path d="M32 15.2l1.7 3.5 3.8.5-2.8 2.7.7 3.8-3.4-1.8-3.4 1.8.7-3.8-2.8-2.7 3.8-.5z" fill="#2a1060"/>
+  <!-- stem and base -->
+  <rect x="29.4" y="31" width="5.2" height="7" fill="url(#gold)"/>
+  <path d="M23 42.5h18l-2-4.5H25z" fill="url(#gold)"/>
+  <rect x="20.5" y="43" width="23" height="4.6" rx="2.3" fill="url(#gold)"/>
+  <!-- sparkles -->
+  <path d="M12.5 43l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9z" fill="#e9d5ff"/>
+  <path d="M51.5 40l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="#fde68a"/>
+</svg>
