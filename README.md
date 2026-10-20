@@ -1,5 +1,7 @@
 # Waukee SSBU Developer Awards
 
+**Live:** https://awards.lineuppro.com (students: scan the QR on the `/qr` page)
+
 Live class voting app for the AP Computer Science Principles tournament-manager
 showcase: 7 student projects, 4 awards, ~21 voters on iPads, and a
 teacher-controlled cinematic awards reveal.
