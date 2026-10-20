@@ -16,8 +16,8 @@ export default function QrPage() {
 
       <div className="mt-8 rounded-[2rem] border-2 border-amber-300/70 bg-white p-5 shadow-[0_0_60px_rgba(245,197,66,0.35)] sm:p-7">
         <Image
-          src="/qr-awards-lineuppro.png"
-          alt="QR code linking to awards.lineuppro.com"
+          src="/qr-waukee-ssbu-awards.png"
+          alt="QR code linking to waukee-ssbu-awards.vercel.app"
           width={460}
           height={460}
           priority
@@ -25,8 +25,8 @@ export default function QrPage() {
         />
       </div>
 
-      <p className="font-display mt-8 text-3xl font-black tracking-wide text-white sm:text-5xl">
-        awards<span className="text-amber-300">.lineuppro</span>.com
+      <p className="font-display mt-8 text-2xl font-black tracking-wide text-white sm:text-4xl">
+        waukee-ssbu-awards<span className="text-amber-300">.vercel.app</span>
       </p>
       <p className="mt-2 text-sm text-purple-200/70 sm:text-base">No account. No name. Just vote. 🏆</p>
     </main>
