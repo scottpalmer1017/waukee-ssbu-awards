@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: var(--font-display), "Arial Black", Arial, sans-serif;
+  --font-sans: var(--font-body), "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body), "Segoe UI", Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(124, 58, 237, 0.38), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(245, 197, 66, 0.12), transparent 55%),
+    radial-gradient(1000px 700px at 50% 115%, rgba(88, 28, 135, 0.45), transparent 60%),
+    #0a0618;
+  background-attachment: fixed;
+}
+
+.font-display {
+  font-family: var(--font-display), "Arial Black", Arial, sans-serif;
+}
+
+/* Subtle animated arena grid sweeping under the content */
+.arena-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.arena-bg::before {
+  content: "";
+  position: absolute;
+  inset: -60% -10%;
+  background-image:
+    linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(600px) rotateX(38deg);
+  animation: arenaScroll 14s linear infinite;
+}
+.arena-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(5, 2, 14, 0.75) 100%);
+}
+
+@keyframes arenaScroll {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 56px, 0 0; }
+}
+
+@keyframes confettiFall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate3d(var(--drift, 0px), 108vh, 0) rotate(680deg); opacity: 0; }
+}
+
+@keyframes winnerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-bg::before { animation: none; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
