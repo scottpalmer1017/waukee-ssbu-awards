@@ -163,7 +163,11 @@ export default function AdminPage() {
           );
         })}
       </section>
-      <p className="mt-4 text-center text-xs text-purple-200/40">Results on this page are teacher-only. The reveal at 🏆 Launch Reveal shows winners one at a time, only when you advance it.</p>
+      <p className="mt-4 text-center text-xs text-purple-200/40">
+        Tally priority: <span className="font-bold text-amber-200/80">Best Overall is decided first</span> — its winner is
+        silently ineligible for the specialty awards (each passes to the next highest), so nobody sweeps all five.
+        Results on this page are teacher-only; the reveal shows winners one at a time, only when you advance it.
+      </p>
     </main>
   );
 }

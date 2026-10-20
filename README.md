@@ -49,9 +49,12 @@ npm run dev   # http://localhost:3000
   already won an earlier award can't win again — on the nominees screen it
   shows a "🏆 WON: …" badge, and the award passes to the next-highest vote
   total among groups that haven't won yet (the dashboard privately shows
-  who was passed over). Exception: the **Best Overall finale** — all 7
-  groups are live again with no badges, and anyone can win it. Vote totals
-  hidden unless the teacher ticks the box. `?rehearsal=1` runs the whole show with fake results and
+  who was passed over). **Tally priority:** Best Overall is decided *first*
+  from raw votes, and its winner is silently ineligible for every specialty
+  award (never badged or named early — that would spoil the finale), so the
+  five awards always go to five different groups. On the finale's nominees
+  screen all 7 groups appear live again with no badges. Vote totals hidden
+  unless the teacher ticks the box. `?rehearsal=1` runs the whole show with fake results and
   never touches real ballots.
 - [ ] **Stage 5 — Hardening & deployment.** iPad Safari checks (landscape
   1180×820 and smaller), Vercel deploy, test from a school-issued iPad on
