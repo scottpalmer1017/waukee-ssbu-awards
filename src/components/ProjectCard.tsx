@@ -30,7 +30,7 @@ export default function ProjectCard({ group, selected, onSelect, disabled = fals
       {/* Screenshot — the dominant visual element */}
       <div className={`relative aspect-video w-full shrink-0 overflow-hidden bg-black lg:aspect-auto lg:min-h-0 lg:flex-1 ${disabled ? "opacity-50 grayscale" : ""}`}>
         {group.screenshotUrl ? (
-          <Image src={group.screenshotUrl} alt={`Screenshot of ${group.name}'s app`} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
+          <Image src={group.screenshotUrl} alt={`Screenshot of ${group.name}'s app`} fill unoptimized sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover" />
         ) : (
           <PlaceholderScreenshot group={group} />
         )}

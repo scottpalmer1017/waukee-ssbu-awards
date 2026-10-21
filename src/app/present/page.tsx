@@ -36,7 +36,12 @@ function WinnerCard({ group, big }: { group: ProjectGroup; big?: boolean }) {
   return (
     <div className={`overflow-hidden rounded-3xl border-2 border-amber-300 bg-[#17102b] shadow-[0_0_60px_rgba(245,197,66,0.5)] ${big ? "w-[min(680px,80vw)]" : "w-[min(420px,42vw)]"}`}>
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        <PlaceholderScreenshot group={group} />
+        {group.screenshotUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={group.screenshotUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <PlaceholderScreenshot group={group} />
+        )}
         <span className="absolute left-3 top-3 rounded-md bg-black/70 px-2.5 py-1 text-xs font-black tracking-widest text-amber-300">GROUP {group.number}</span>
       </div>
       <div className="px-6 py-4 text-center">
@@ -51,12 +56,20 @@ function PresentInner() {
   const params = useSearchParams();
   const rehearsal = params.get("rehearsal") === "1";
   const [data, setData] = useState<Results | null>(null);
+  const [groups, setGroups] = useState<ProjectGroup[]>(GROUPS);
   const [unauthorized, setUnauthorized] = useState(false);
   const [awardIdx, setAwardIdx] = useState(0);
   const [stage, setStage] = useState<Stage>("award");
   const [showCounts, setShowCounts] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    fetch(apiPath("/api/groups"))
+      .then((r) => r.json())
+      .then((d: { groups?: ProjectGroup[] }) => { if (Array.isArray(d.groups) && d.groups.length) setGroups(d.groups); })
+      .catch(() => { /* keep placeholders */ });
+  }, []);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- one-time results load on mount */
@@ -80,8 +93,8 @@ function PresentInner() {
   const category = CATEGORIES[awardIdx];
   const result = ceremony[awardIdx];
   const winnerGroups = useMemo(
-    () => (result?.winners ?? []).map((id) => GROUPS.find((g) => g.id === id)).filter((g): g is ProjectGroup => Boolean(g)),
-    [result],
+    () => (result?.winners ?? []).map((id) => groups.find((g) => g.id === id)).filter((g): g is ProjectGroup => Boolean(g)),
+    [result, groups],
   );
   const wonAwardTitle = (awardId: string) => CATEGORIES.find((c) => c.id === awardId)?.shortTitle ?? awardId;
 
@@ -171,14 +184,19 @@ function PresentInner() {
             <p className="text-sm font-black tracking-[0.45em] text-amber-300">{category.icon} {category.title.toUpperCase()}</p>
             <h2 className="font-display mt-2 text-4xl font-black">The Nominees</h2>
             <div className="mt-6 grid w-full grid-cols-4 gap-3">
-              {GROUPS.map((g) => {
+              {groups.map((g) => {
                 // Finale: everyone is live again — no badges, no grey-out.
                 const alreadyWonAward = category.isFinale ? undefined : result?.wonBefore[g.id];
                 return (
                   <div key={g.id}>
                     <div className={`relative overflow-hidden rounded-2xl border bg-[#17102b] ${alreadyWonAward ? "border-amber-300/40 opacity-60" : "border-purple-300/30"}`}>
                       <div className={`relative aspect-video overflow-hidden bg-black ${alreadyWonAward ? "grayscale-[0.6]" : ""}`}>
-                        <PlaceholderScreenshot group={g} />
+                        {g.screenshotUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={g.screenshotUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <PlaceholderScreenshot group={g} />
+                        )}
                         {alreadyWonAward && (
                           <span className="absolute inset-0 flex items-center justify-center px-2">
                             <span className="rounded-full border border-amber-300/80 bg-black/80 px-3 py-1.5 text-center text-[11px] font-black tracking-wide text-amber-200 backdrop-blur-sm">

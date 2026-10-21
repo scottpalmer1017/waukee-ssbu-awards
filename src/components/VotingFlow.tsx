@@ -13,8 +13,8 @@ const STORAGE_KEY = "waukee-ssbu-ballot-v1";
 
 type SavedState = { phase: Phase; step: number; selections: Selections };
 
-function groupById(id?: string): ProjectGroup | undefined {
-  return GROUPS.find((g) => g.id === id);
+function groupById(groups: ProjectGroup[], id?: string): ProjectGroup | undefined {
+  return groups.find((g) => g.id === id);
 }
 
 /** 4-across top row, 3 centred underneath on large/landscape screens (8-col trick). */
@@ -30,14 +30,19 @@ export default function VotingFlow() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [votingOpen, setVotingOpen] = useState<boolean>(EVENT.votingOpen);
+  const [groups, setGroups] = useState<ProjectGroup[]>(GROUPS);
   const [hydrated, setHydrated] = useState(false);
 
-  // Live open/closed status from the teacher dashboard.
+  // Live open/closed status + teacher-uploaded screenshots from the server.
   useEffect(() => {
     fetch(apiPath("/api/status"))
       .then((r) => r.json())
       .then((d: { votingOpen?: boolean }) => { if (typeof d.votingOpen === "boolean") setVotingOpen(d.votingOpen); })
       .catch(() => { /* offline/demo — keep default */ });
+    fetch(apiPath("/api/groups"))
+      .then((r) => r.json())
+      .then((d: { groups?: ProjectGroup[] }) => { if (Array.isArray(d.groups) && d.groups.length) setGroups(d.groups); })
+      .catch(() => { /* keep placeholders */ });
   }, []);
 
   // Resume an in-progress ballot after a refresh; a submitted ballot stays submitted on this iPad.
@@ -263,7 +268,7 @@ export default function VotingFlow() {
 
           <main className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-6 lg:overflow-hidden">
             <div key={category.id} className="animate-[fadeSlide_0.35s_ease] grid h-full grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-8 lg:grid-rows-2">
-              {GROUPS.map((g, i) => (
+              {groups.map((g, i) => (
                 <div key={g.id} className={`min-h-0 lg:col-span-2 ${cardPlacement(i)}`}>
                   <ProjectCard group={g} selected={selectedForStep === g.id} onSelect={select} disabled={disabledGroupIds.has(g.id)} className="h-full w-full" />
                 </div>
@@ -280,7 +285,7 @@ export default function VotingFlow() {
               ← Back
             </button>
             <p className="hidden text-xs text-purple-200/60 sm:block">
-              {selectedForStep ? `${groupById(selectedForStep)?.name} selected` : "Tap a project to continue"}
+              {selectedForStep ? `${groupById(groups, selectedForStep)?.name} selected` : "Tap a project to continue"}
             </p>
             <button
               type="button"
@@ -302,11 +307,16 @@ export default function VotingFlow() {
             <p className="mt-1 text-center text-sm text-purple-200/75">Check your picks. Tap Change to fix any award.</p>
             <div className="mx-auto mt-5 grid max-w-4xl gap-3 sm:grid-cols-2">
               {CATEGORIES.map((c, i) => {
-                const g = groupById(selections[c.id]);
+                const g = groupById(groups, selections[c.id]);
                 return (
                   <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-purple-300/25 bg-[#17102b]/90 p-3">
                     <div className="relative aspect-video w-28 shrink-0 overflow-hidden rounded-lg bg-black sm:w-36">
-                      {g && (g.screenshotUrl ? null : <PlaceholderScreenshot group={g} />)}
+                      {g && (g.screenshotUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={g.screenshotUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <PlaceholderScreenshot group={g} />
+                      ))}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-black tracking-[0.2em] text-amber-300">{c.icon} {c.shortTitle.toUpperCase()}</p>
@@ -359,7 +369,7 @@ export default function VotingFlow() {
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {CATEGORIES.map((c) => (
               <span key={c.id} className="rounded-full border border-purple-300/30 bg-purple-500/10 px-3 py-1.5 text-xs font-bold text-purple-100">
-                {c.icon} {groupById(selections[c.id])?.name}
+                {c.icon} {groupById(groups, selections[c.id])?.name}
               </span>
             ))}
           </div>

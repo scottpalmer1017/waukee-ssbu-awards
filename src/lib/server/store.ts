@@ -38,7 +38,7 @@ export type StoredBallot = {
   submittedAt: string;
 };
 
-type StoreShape = { votingOpen: boolean; ballots: StoredBallot[] };
+type StoreShape = { votingOpen: boolean; ballots: StoredBallot[]; screenshots?: Record<string, string> };
 
 const STORE_PATH = path.join(process.cwd(), "data", "store.json");
 
@@ -86,6 +86,43 @@ export async function setVotingOpen(open: boolean): Promise<void> {
   }
   const store = await readStore();
   store.votingOpen = open;
+  await writeStore(store);
+}
+
+/**
+ * Group screenshots uploaded by the teacher. Stored as compressed JPEG data
+ * URLs (Supabase: groups.screenshot_path; local mode: the JSON store) so no
+ * storage bucket setup is needed and student iPads load them from the same
+ * school-unblocked domain as the app itself.
+ */
+export async function getGroupScreenshots(): Promise<Record<string, string>> {
+  const db = supabase();
+  if (db) {
+    const { data } = await db.from("groups").select("id, screenshot_path");
+    const out: Record<string, string> = {};
+    for (const row of data ?? []) {
+      const value = (row as { screenshot_path?: string | null }).screenshot_path;
+      if (!value) continue;
+      out[(row as { id: string }).id] = value.startsWith("data:image/")
+        ? value
+        : `${SUPABASE_URL}/storage/v1/object/public/screenshots/${value}`;
+    }
+    return out;
+  }
+  return (await readStore()).screenshots ?? {};
+}
+
+export async function setGroupScreenshot(groupId: string, imageDataUrl: string | null): Promise<void> {
+  const db = supabase();
+  if (db) {
+    const { error } = await db.from("groups").update({ screenshot_path: imageDataUrl }).eq("id", groupId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  const store = await readStore();
+  store.screenshots = store.screenshots ?? {};
+  if (imageDataUrl) store.screenshots[groupId] = imageDataUrl;
+  else delete store.screenshots[groupId];
   await writeStore(store);
 }
 

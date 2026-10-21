@@ -1,9 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CATEGORIES, GROUPS } from "@/lib/data";
+import { CATEGORIES, GROUPS, type ProjectGroup } from "@/lib/data";
 import { computeCeremonyResults } from "@/lib/results";
 import { apiPath } from "@/lib/basePath";
+import PlaceholderScreenshot from "@/components/PlaceholderScreenshot";
+
+/** Shrink an uploaded screenshot so it loads fast on school Wi-Fi. */
+async function compressImage(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const maxWidth = 1280;
+  const scale = Math.min(1, maxWidth / bitmap.width);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Image processing not supported in this browser.");
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.78);
+}
 
 type Results = {
   votingOpen: boolean;
@@ -21,6 +36,50 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [data, setData] = useState<Results | null>(null);
   const [busy, setBusy] = useState(false);
+  const [groups, setGroups] = useState<ProjectGroup[]>(GROUPS);
+  const [uploadState, setUploadState] = useState<Record<string, string>>({});
+
+  const loadGroups = useCallback(async () => {
+    try {
+      const r = await fetch(apiPath("/api/groups"), { cache: "no-store" });
+      if (r.ok) {
+        const d = (await r.json()) as { groups?: ProjectGroup[] };
+        if (Array.isArray(d.groups) && d.groups.length) setGroups(d.groups);
+      }
+    } catch { /* keep placeholders */ }
+  }, []);
+
+  useEffect(() => { loadGroups(); }, [loadGroups]);
+
+  async function uploadScreenshot(group: ProjectGroup, file: File | null) {
+    if (!file) return;
+    setUploadState((s) => ({ ...s, [group.id]: "Uploading…" }));
+    try {
+      const imageDataUrl = await compressImage(file);
+      const r = await fetch(apiPath("/api/admin/screenshot"), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groupId: group.id, imageDataUrl }),
+      });
+      if (!r.ok) {
+        const d = (await r.json().catch(() => ({}))) as { error?: string };
+        throw new Error(d.error ?? "Upload failed.");
+      }
+      await loadGroups();
+      setUploadState((s) => ({ ...s, [group.id]: "Saved ✓ Students see it now." }));
+    } catch (e) {
+      setUploadState((s) => ({ ...s, [group.id]: e instanceof Error ? e.message : "Upload failed." }));
+    }
+  }
+
+  async function removeScreenshot(group: ProjectGroup) {
+    setUploadState((s) => ({ ...s, [group.id]: "Removing…" }));
+    await fetch(apiPath("/api/admin/screenshot"), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ groupId: group.id, imageDataUrl: null }),
+    });
+    await loadGroups();
+    setUploadState((s) => ({ ...s, [group.id]: "Removed." }));
+  }
 
   const load = useCallback(async () => {
     const r = await fetch(apiPath("/api/admin/state"), { cache: "no-store" });
@@ -28,7 +87,6 @@ export default function AdminPage() {
     if (r.ok) { setAuthed(true); setData(await r.json()); }
   }, []);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- initial teacher-state load on mount
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!authed) return;
@@ -119,6 +177,52 @@ export default function AdminPage() {
           <button disabled={busy} onClick={() => control("reset")} className="mt-3 rounded-lg border border-red-300/60 bg-red-500/15 px-3 py-1.5 text-sm font-black text-red-200 hover:bg-red-500/25 disabled:opacity-30">
             Reset — Delete All Ballots
           </button>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display text-2xl font-black">📸 Group Screenshots</h2>
+            <p className="mt-0.5 text-sm text-purple-200/70">One spot per group. Upload each team&apos;s app screenshot — students see it on their voting cards right away.</p>
+          </div>
+          <p className="text-sm font-bold text-purple-100/80">{groups.filter((g) => g.screenshotUrl).length} of {groups.length} uploaded</p>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {groups.map((g) => (
+            <article key={g.id} className="overflow-hidden rounded-2xl border border-purple-300/25 bg-[#17102b]/90">
+              <div className="relative aspect-video w-full overflow-hidden bg-black">
+                {g.screenshotUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={g.screenshotUrl} alt={`Screenshot for ${g.name}`} className="h-full w-full object-cover" />
+                ) : (
+                  <PlaceholderScreenshot group={g} />
+                )}
+                <span className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-black tracking-widest text-amber-300">GROUP {g.number}</span>
+                {g.screenshotUrl && <span className="absolute right-2 top-2 rounded-full bg-emerald-400 px-2 py-0.5 text-[11px] font-black text-black">✓ LIVE</span>}
+              </div>
+              <div className="p-3">
+                <p className="font-extrabold text-white">{g.name} <span className="block truncate text-xs font-semibold text-purple-200/70">{g.students.join(" · ")}</span></p>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <label className="font-display flex-1 cursor-pointer rounded-lg bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-2 text-center text-sm font-black text-black transition hover:brightness-110 active:scale-95">
+                    {g.screenshotUrl ? "Replace Screenshot" : "Upload Screenshot"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => { void uploadScreenshot(g, e.target.files?.[0] ?? null); e.target.value = ""; }}
+                    />
+                  </label>
+                  {g.screenshotUrl && (
+                    <button type="button" onClick={() => void removeScreenshot(g)} className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-bold text-white/85 hover:bg-white/10">
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {uploadState[g.id] && <p className="mt-2 text-xs font-semibold text-purple-100/80">{uploadState[g.id]}</p>}
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
