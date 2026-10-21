@@ -7,6 +7,7 @@ import PlaceholderScreenshot from "@/components/PlaceholderScreenshot";
 import Confetti from "@/components/Confetti";
 import { computeCeremonyResults } from "@/lib/results";
 import { playSuspenseRoll, playWinnerCelebration } from "@/lib/sounds";
+import { apiPath } from "@/lib/basePath";
 
 type Results = {
   votingOpen: boolean;
@@ -63,7 +64,7 @@ function PresentInner() {
       setData({ votingOpen: false, totalBallots: 21, results: CATEGORIES.map((c) => ({ categoryId: c.id, counts: REHEARSAL_COUNTS[c.id], winners: REHEARSAL_WINNERS[c.id] ?? [] })) });
       return;
     }
-    fetch("/api/admin/state", { cache: "no-store" })
+    fetch(apiPath("/api/admin/state"), { cache: "no-store" })
       .then(async (r) => {
         if (r.status === 401) { setUnauthorized(true); return; }
         if (r.ok) setData(await r.json());
@@ -126,7 +127,7 @@ function PresentInner() {
       <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
         <p className="font-display text-3xl font-black">Teacher login required</p>
         <p className="text-purple-200/80">Results stay hidden until the teacher launches the reveal.</p>
-        <a href="/admin" className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-6 py-3 font-black text-black">Go to Teacher Login</a>
+        <a href={apiPath("/admin")} className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-6 py-3 font-black text-black">Go to Teacher Login</a>
       </main>
     );
   }
@@ -137,8 +138,8 @@ function PresentInner() {
         <p className="font-display text-3xl font-black">No ballots yet</p>
         <p className="text-purple-200/80">Open voting from the dashboard, or run a rehearsal instead.</p>
         <div className="flex gap-2">
-          <a href="/admin" className="rounded-xl border border-white/25 bg-white/5 px-5 py-2.5 font-bold">Dashboard</a>
-          <a href="/present?rehearsal=1" className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-2.5 font-black text-black">Rehearse Reveal</a>
+          <a href={apiPath("/admin")} className="rounded-xl border border-white/25 bg-white/5 px-5 py-2.5 font-bold">Dashboard</a>
+          <a href={apiPath("/present?rehearsal=1")} className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-2.5 font-black text-black">Rehearse Reveal</a>
         </div>
       </main>
     );
@@ -230,7 +231,7 @@ function PresentInner() {
 
       <footer className="flex items-center justify-between px-6 pb-5 text-xs text-purple-200/50" onClick={(e) => e.stopPropagation()}>
         {stage === "award" && awardIdx === 0 && !done ? (
-          <a href="/admin" className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Dashboard</a>
+          <a href={apiPath("/admin")} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Dashboard</a>
         ) : (
           <button type="button" onClick={(e) => { goBackStage(); e.currentTarget.blur(); }} className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 font-bold text-white/80 hover:bg-white/10">← Back</button>
         )}

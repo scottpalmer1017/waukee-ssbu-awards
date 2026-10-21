@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Served as a zone under mylineuppro.com/awards (see rewrites in LineupPro).
+  basePath: "/awards",
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

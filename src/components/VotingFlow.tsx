@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CATEGORIES, EVENT, GROUPS, type ProjectGroup } from "@/lib/data";
+import { apiPath } from "@/lib/basePath";
 import ProjectCard from "./ProjectCard";
 import PlaceholderScreenshot from "./PlaceholderScreenshot";
 
@@ -33,7 +34,7 @@ export default function VotingFlow() {
 
   // Live open/closed status from the teacher dashboard.
   useEffect(() => {
-    fetch("/api/status")
+    fetch(apiPath("/api/status"))
       .then((r) => r.json())
       .then((d: { votingOpen?: boolean }) => { if (typeof d.votingOpen === "boolean") setVotingOpen(d.votingOpen); })
       .catch(() => { /* offline/demo — keep default */ });
@@ -129,7 +130,7 @@ export default function VotingFlow() {
           : `device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         localStorage.setItem("waukee-device-token", token);
       }
-      const response = await fetch("/api/ballot", {
+      const response = await fetch(apiPath("/api/ballot"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deviceToken: token, selections }),

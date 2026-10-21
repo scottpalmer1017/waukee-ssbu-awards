@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CATEGORIES, GROUPS } from "@/lib/data";
 import { computeCeremonyResults } from "@/lib/results";
+import { apiPath } from "@/lib/basePath";
 
 type Results = {
   votingOpen: boolean;
@@ -22,7 +23,7 @@ export default function AdminPage() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const r = await fetch("/api/admin/state", { cache: "no-store" });
+    const r = await fetch(apiPath("/api/admin/state"), { cache: "no-store" });
     if (r.status === 401) { setAuthed(false); return; }
     if (r.ok) { setAuthed(true); setData(await r.json()); }
   }, []);
@@ -38,7 +39,7 @@ export default function AdminPage() {
   async function login(e: React.FormEvent) {
     e.preventDefault();
     setLoginError(null);
-    const r = await fetch("/api/admin/login", {
+    const r = await fetch(apiPath("/api/admin/login"), {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password }),
     });
@@ -52,7 +53,7 @@ export default function AdminPage() {
       if (window.prompt('Type RESET to confirm deleting all ballots') !== "RESET") return;
     }
     setBusy(true);
-    await fetch("/api/admin/control", {
+    await fetch(apiPath("/api/admin/control"), {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
@@ -92,8 +93,8 @@ export default function AdminPage() {
           <h1 className="font-display text-3xl font-black">Waukee SSBU Developer Awards</h1>
         </div>
         <div className="flex gap-2">
-          <a href="/present?rehearsal=1" className="rounded-xl border border-white/25 bg-white/5 px-4 py-2.5 text-sm font-bold hover:bg-white/10">🎬 Rehearse Reveal</a>
-          <a href="/present" className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2.5 text-sm font-black tracking-wide text-black shadow-[0_0_20px_rgba(245,197,66,0.45)] hover:brightness-110">🏆 Launch Reveal</a>
+          <a href={apiPath("/present?rehearsal=1")} className="rounded-xl border border-white/25 bg-white/5 px-4 py-2.5 text-sm font-bold hover:bg-white/10">🎬 Rehearse Reveal</a>
+          <a href={apiPath("/present")} className="font-display rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2.5 text-sm font-black tracking-wide text-black shadow-[0_0_20px_rgba(245,197,66,0.45)] hover:brightness-110">🏆 Launch Reveal</a>
         </div>
       </div>
 
