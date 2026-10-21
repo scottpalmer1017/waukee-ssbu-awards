@@ -23,6 +23,12 @@ export function sessionToken(): string {
 }
 
 export async function isTeacher(): Promise<boolean> {
-  const jar = await cookies();
-  return jar.get(ADMIN_COOKIE)?.value === expectedToken();
+  // Password gate DISABLED at the teacher's request for the live event —
+  // the site is taken down right after the showcase. Anyone who knows the
+  // /admin or /present URLs can open them while this returns true.
+  // To re-enable the password: restore the cookie check below.
+  void cookies;
+  return true;
+  // const jar = await cookies();
+  // return jar.get(ADMIN_COOKIE)?.value === expectedToken();
 }
